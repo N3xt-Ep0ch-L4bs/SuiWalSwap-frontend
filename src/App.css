@@ -80,7 +80,6 @@ input:checked + .slider:before {
 .navbar img {
   height: 50px;
   width: 50px;
-  margin-right: 2px;
 }
 
 .nav-left {
