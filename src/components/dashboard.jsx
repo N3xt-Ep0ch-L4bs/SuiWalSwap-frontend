@@ -1,43 +1,23 @@
 import { useState } from "react";
+import {
+  ConnectButton,
+  useCurrentAccount,
+} from "@mysten/dapp-kit";
 import "../App.css";
 
 function Dashboard() {
   const [theme, setTheme] = useState("light");
-  const [connected, setConnected] = useState(false);
-  const [connecting, setConnecting] = useState(false);
-  const [showModal, setShowModal] = useState(false);
-  const [account, setAccount] = useState(null);
-
   const [sendToken, setSendToken] = useState("Sui");
   const [receiveToken, setReceiveToken] = useState("Walrus");
   const [sendAmount, setSendAmount] = useState(1);
   const [receiveAmount, setReceiveAmount] = useState(2.3);
 
+  const currentAccount = useCurrentAccount();
+
   const data = [
-    {
-      date: "12 Oct 2025",
-      pair: "Sui → WAL",
-      input: "1.02 SUI",
-      output: "2.03 WAL",
-      hash: "0x239...12d4",
-      status: "Success",
-    },
-    {
-      date: "08 Oct 2025",
-      pair: "WAL → SUI",
-      input: "5.02 WAL",
-      output: "2.07 SUI",
-      hash: "0xf64...11e8",
-      status: "Failed",
-    },
-    {
-      date: "03 Oct 2025",
-      pair: "Sui → WAL",
-      input: "3.02 SUI",
-      output: "6.09 WAL",
-      hash: "0x9ba...00f2",
-      status: "Pending",
-    },
+    { date: "12 Oct 2025", pair: "Sui → WAL", input: "1.02 SUI", output: "2.03 WAL", hash: "0x239...12d4", status: "Success" },
+    { date: "08 Oct 2025", pair: "WAL → SUI", input: "5.02 WAL", output: "2.07 SUI", hash: "0xf64...11e8", status: "Failed" },
+    { date: "03 Oct 2025", pair: "Sui → WAL", input: "3.02 SUI", output: "6.09 WAL", hash: "0x9ba...00f2", status: "Pending" },
   ];
 
   // Theme toggle
@@ -47,23 +27,7 @@ function Dashboard() {
     document.documentElement.setAttribute("data-theme", newTheme);
   };
 
-  // Simulate wallet connect
-  const handleConnectWallet = () => {
-    setConnecting(true);
-    setTimeout(() => {
-      setConnected(true);
-      setAccount({ address: "0xA2394BcD12Ef4567890" });
-      setConnecting(false);
-      setShowModal(false);
-    }, 1000);
-  };
-
-  const handleLogout = () => {
-    setConnected(false);
-    setAccount(null);
-  };
-
-  // 🌀 Swap function — swaps tokens and their amounts
+  // Swap tokens
   const handleSwap = () => {
     const tempToken = sendToken;
     const tempAmount = sendAmount;
@@ -71,6 +35,16 @@ function Dashboard() {
     setReceiveToken(tempToken);
     setSendAmount(receiveAmount);
     setReceiveAmount(tempAmount);
+  };
+
+  const handleTokenChange = (type, value) => {
+    if (type === "send") {
+      if (value === receiveToken) setReceiveToken(sendToken);
+      setSendToken(value);
+    } else {
+      if (value === sendToken) setSendToken(receiveToken);
+      setReceiveToken(value);
+    }
   };
 
   return (
@@ -87,44 +61,30 @@ function Dashboard() {
         </div>
 
         <div className="nav-right">
-          {!connected ? (
-            <button
-              className="connect-wallet"
-              onClick={handleConnectWallet}
-              disabled={connecting}
-            >
-              {connecting ? "Connecting..." : "Connect Wallet"}
-            </button>
-          ) : (
-            <div className="wallet-actions">
-              <button className="connect-wallet">
-                {account?.address.slice(0, 6)}...{account?.address.slice(-4)}
-              </button>
-              <button className="logout" onClick={handleLogout}>
-                Logout
-              </button>
-            </div>
-          )}
 
+          <ConnectButton className="connect-wallet" />
           <label className="theme-toggle">
-            <input
-              type="checkbox"
-              onChange={toggleTheme}
-              checked={theme === "dark"}
-            />
+            <input type="checkbox" onChange={toggleTheme} checked={theme === "dark"} />
             <span className="slider"></span>
           </label>
         </div>
       </nav>
 
-      {/* Content */}
       <div className="content-wrapper">
         <div className="swap-box">
           <div className="swap-section">
             <span className="section-title">Send</span>
             <div className="token-select">
-              <span className="token-name">{sendToken}</span>
+              <select
+                value={sendToken}
+                onChange={(e) => handleTokenChange("send", e.target.value)}
+                className="token-dropdown"
+              >
+                <option value="Sui">Sui</option>
+                <option value="Walrus">Walrus</option>
+              </select>
             </div>
+
             <div className="amount-display">
               <input
                 type="number"
@@ -136,16 +96,22 @@ function Dashboard() {
             </div>
           </div>
 
-          {/* 👇 SWAP BUTTON (Dynamic) */}
-          <div className="swap-divider" onClick={handleSwap} title="Swap tokens">
-            ⇅
-          </div>
+          {/* Swap Divider */}
+          <div className="swap-divider" onClick={handleSwap} title="Swap tokens">⇅</div>
 
           <div className="swap-section">
             <span className="section-title">Receive</span>
             <div className="token-select">
-              <span className="token-name">{receiveToken}</span>
+              <select
+                value={receiveToken}
+                onChange={(e) => handleTokenChange("receive", e.target.value)}
+                className="token-dropdown"
+              >
+                <option value="Sui">Sui</option>
+                <option value="Walrus">Walrus</option>
+              </select>
             </div>
+
             <div className="amount-display">
               <input
                 type="number"
@@ -157,18 +123,19 @@ function Dashboard() {
             </div>
           </div>
 
+          {/* Confirm */}
           <div className="confirm-container">
             <button
               className="confirm-btn"
               onClick={() => {
-                if (!connected) {
-                  handleConnectWallet();
+                if (!currentAccount) {
+                  alert("Please connect your Sui wallet first!");
                 } else {
                   console.log("Confirming swap...");
                 }
               }}
             >
-              {connected ? "Confirm and Swap" : "Connect Wallet"}
+              {currentAccount ? "Confirm and Swap" : "Connect Wallet"}
             </button>
           </div>
         </div>
@@ -204,7 +171,7 @@ function Dashboard() {
       </div>
 
       <footer className="footer">
-        <p>Built by NEXT EPOCH LABS ✕</p>
+        <p>Built by NEXT EPOCH LABS <img src="src/assets/X-logo.png" /></p>
       </footer>
     </div>
   );

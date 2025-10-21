@@ -175,6 +175,21 @@ input:checked + .slider:before {
   cursor: pointer;
 }
 
+.token-dropdown {
+  background-color: var(--bg-secondary);
+  color: var(--text-primary);
+  padding: 8px 12px;
+  font-size: 1rem;
+  cursor: pointer;
+  transition: background-color 0.3s;
+  border: none;
+}
+
+.token-dropdown:hover {
+  background-color: var(--hover-bg);
+}
+
+
 .swap-page.dark .token-select {
   border: 1px solid #666;
 }
