@@ -91,13 +91,21 @@ function Dashboard() {
         </div>
       </nav>
 
-     <div className="hero">
-      <h1>Sui </h1>
-     </div>
+      <section className="hero">
+        <h2>Sui &#8596; Walrus Swap</h2>
+        <p>Seamlessly swap your assets between Sui and Walrus</p>
+      </section>
       <div className="content-wrapper">
         <div className="swap-box">
+          <section className="section">
+          <div className="section-title">
+            <h2>Send</h2>
+          </div>
+          <div className="section-p">
+           <p><b>&#9881;</b></p>
+           </div>
+          </section>
           <div className="swap-section">
-            <span className="section-title">Send</span>
             <div className="token-select">
               <select
                 value={sendToken}
@@ -121,9 +129,10 @@ function Dashboard() {
           </div>
 
           <div className="swap-divider" onClick={handleTokenSwitch} title="Swap tokens">⇅</div>
-
-          <div className="swap-section">
-            <span className="section-title">Receive</span>
+              <div className="section-title">
+                  <h2>Recieve</h2>
+              </div>
+            <div className="swap-section">
             <div className="token-select">
               <select
                 value={receiveToken}
