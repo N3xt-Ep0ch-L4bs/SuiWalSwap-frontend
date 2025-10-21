@@ -1,8 +1,5 @@
 import { useState } from "react";
-import {
-  ConnectButton,
-  useCurrentAccount,
-} from "@mysten/dapp-kit";
+import { ConnectButton, useCurrentAccount } from "@mysten/dapp-kit";
 import "../App.css";
 
 function Dashboard() {
@@ -20,14 +17,12 @@ function Dashboard() {
     { date: "03 Oct 2025", pair: "Sui → WAL", input: "3.02 SUI", output: "6.09 WAL", hash: "0x9ba...00f2", status: "Pending" },
   ];
 
-  // Theme toggle
   const toggleTheme = () => {
     const newTheme = theme === "light" ? "dark" : "light";
     setTheme(newTheme);
     document.documentElement.setAttribute("data-theme", newTheme);
   };
 
-  // Swap tokens
   const handleSwap = () => {
     const tempToken = sendToken;
     const tempAmount = sendAmount;
@@ -61,8 +56,9 @@ function Dashboard() {
         </div>
 
         <div className="nav-right">
+          {/* ✅ Official ConnectButton from Mysten */}
+          <ConnectButton />
 
-          <ConnectButton className="connect-wallet" />
           <label className="theme-toggle">
             <input type="checkbox" onChange={toggleTheme} checked={theme === "dark"} />
             <span className="slider"></span>
@@ -70,6 +66,7 @@ function Dashboard() {
         </div>
       </nav>
 
+      {/* Content */}
       <div className="content-wrapper">
         <div className="swap-box">
           <div className="swap-section">
@@ -96,7 +93,6 @@ function Dashboard() {
             </div>
           </div>
 
-          {/* Swap Divider */}
           <div className="swap-divider" onClick={handleSwap} title="Swap tokens">⇅</div>
 
           <div className="swap-section">
@@ -123,7 +119,6 @@ function Dashboard() {
             </div>
           </div>
 
-          {/* Confirm */}
           <div className="confirm-container">
             <button
               className="confirm-btn"
@@ -171,7 +166,7 @@ function Dashboard() {
       </div>
 
       <footer className="footer">
-        <p>Built by NEXT EPOCH LABS <img src="src/assets/X-logo.png" /></p>
+        <p>Built by NEXT EPOCH LABS &times;</p>
       </footer>
     </div>
   );
