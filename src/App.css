@@ -13,13 +13,11 @@
   --border-color: #333;
 }
 
-/* Apply globals */
 body, .swap-page {
   background-color: var(--bg-color);
   color: var(--text-color);
 }
 
-/* Toggle Switch */
 .theme-toggle {
   position: relative;
   display: inline-block;
@@ -66,8 +64,6 @@ input:checked + .slider:before {
   transform: translateX(26px);
 }
 
-
-/* ===== Navbar ===== */
 .navbar {
   width: 94%;
   padding: 0px 20px;

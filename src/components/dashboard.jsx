@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { ConnectButton, useCurrentAccount } from "@mysten/dapp-kit";
 import "../App.css";
-import SwapPopup from "./Swaptoast"; // 👈 Import popup component
+import SwapPopup from "./Swaptoast"; 
 
 function Dashboard() {
   const [theme, setTheme] = useState("light");
@@ -31,14 +31,11 @@ function Dashboard() {
       return;
     }
 
-    // Show loading popup
     setPopupStatus("loading");
 
     try {
-      // simulate network swap delay
       await new Promise((res) => setTimeout(res, 2000));
 
-      // simulate random success or failure
       const isSuccess = Math.random() > 0.3;
 
       if (isSuccess) {
@@ -47,7 +44,6 @@ function Dashboard() {
         setPopupStatus("error");
       }
 
-      // remove popup after 4 seconds
       setTimeout(() => setPopupStatus(null), 4000);
     } catch {
       setPopupStatus("error");
@@ -165,7 +161,6 @@ function Dashboard() {
           </div>
         </div>
 
-        {/* Transaction Table */}
         <div className="txn-table-wrapper">
           <h3 className="txn-title">Transaction history</h3>
           <table className="txn-table">
@@ -203,7 +198,6 @@ function Dashboard() {
           </label>
       </footer>
 
-      {/* 👇 Popup component */}
       <SwapPopup
         status={popupStatus}
         onRetry={() => {
