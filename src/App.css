@@ -273,7 +273,6 @@ input:checked + .slider:before {
 .txn-table th,
 .txn-table td {
   padding: 10px;
-  border: 1px solid #e5e5e5;
   text-align: left;
 }
 
@@ -298,6 +297,28 @@ input:checked + .slider:before {
   font-size: 12px;
   opacity: 0.7;
 }
+/* 🔥 Force full page to shrink proportionally on small screens */
+@media (max-width: 900px) {
+  .swap-page {
+    transform: scale(0.9);
+    transform-origin: top center;
+  }
+}
+
+@media (max-width: 600px) {
+  .swap-page {
+    transform: scale(0.9);
+    transform-origin: top center;
+  }
+}
+
+@media (max-width: 480px) {
+  .swap-page {
+    transform: scale(0.9);
+    transform-origin: top center;
+  }
+}
+
 
 
 .popup-container {
@@ -311,16 +332,18 @@ input:checked + .slider:before {
   transition: all 0.3s ease;
 }
 
-/* Base styles */
+/* Base popup box */
 .popup-box {
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   gap: 12px;
   padding: 14px 16px;
   border-radius: 14px;
   font-size: 0.95rem;
   box-shadow: 0 4px 14px rgba(0, 0, 0, 0.15);
   animation: fadeInUp 0.4s ease;
+  max-width: 340px;
+  word-wrap: break-word;
 }
 
 .popup-box p {
@@ -333,6 +356,7 @@ input:checked + .slider:before {
   opacity: 0.8;
   display: block;
   margin-top: 2px;
+  line-height: 1.3;
 }
 
 .explorer-link {
@@ -343,10 +367,14 @@ input:checked + .slider:before {
   display: inline-block;
 }
 
+.explorer-link:hover {
+  text-decoration: underline;
+}
+
 .retry-btn {
-  margin-top: 5px;
-  padding: 4px 10px;
-  font-size: 0.8rem;
+  margin-top: 6px;
+  padding: 6px 12px;
+  font-size: 0.85rem;
   border: none;
   border-radius: 8px;
   background: #ef4444;
@@ -359,7 +387,7 @@ input:checked + .slider:before {
   background: #dc2626;
 }
 
-/* Theme-based colors */
+/* THEME HANDLING */
 .popup-container.light .popup-box {
   background: white;
   color: #111;
@@ -371,7 +399,7 @@ input:checked + .slider:before {
   border: 1px solid rgba(255, 255, 255, 0.1);
 }
 
-/* Variants */
+/* VARIANT STYLES */
 .loading {
   border-left: 4px solid #3b82f6;
 }
@@ -384,8 +412,10 @@ input:checked + .slider:before {
   border-left: 4px solid #ef4444;
 }
 
+/* ICONS */
 .icon {
   flex-shrink: 0;
+  margin-top: 2px;
 }
 
 .success-icon {
@@ -396,12 +426,12 @@ input:checked + .slider:before {
   color: #ef4444;
 }
 
-/* Spinner */
+/* SPINNER */
 .spin {
   animation: spin 1s linear infinite;
 }
 
-/* Animations */
+/* ANIMATIONS */
 @keyframes fadeInUp {
   from {
     opacity: 0;
@@ -416,5 +446,55 @@ input:checked + .slider:before {
 @keyframes spin {
   to {
     transform: rotate(360deg);
+  }
+}
+
+/* 🌐 RESPONSIVENESS */
+
+/* Medium screens (tablets) */
+@media (max-width: 768px) {
+  .popup-container {
+    right: 10px;
+    top: 10px;
+  }
+
+  .popup-box {
+    max-width: 300px;
+    padding: 12px 14px;
+    font-size: 0.9rem;
+  }
+}
+
+/* Small screens (phones) */
+@media (max-width: 480px) {
+  .popup-container {
+    right: 0;
+    left: 0;
+    top: auto;
+    bottom: 20px;
+    align-items: center;
+  }
+
+  .popup-box {
+    width: 90%;
+    max-width: 360px;
+    padding: 14px 16px;
+    border-radius: 16px;
+    font-size: 0.9rem;
+    box-shadow: 0 6px 16px rgba(0, 0, 0, 0.25);
+  }
+
+  .retry-btn {
+    width: 100%;
+    text-align: center;
+    padding: 8px;
+    margin-top: 8px;
+    font-size: 0.9rem;
+  }
+
+  .explorer-link {
+    display: block;
+    text-align: center;
+    margin-top: 6px;
   }
 }

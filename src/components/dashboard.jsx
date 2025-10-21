@@ -88,14 +88,12 @@ function Dashboard() {
 
         <div className="nav-right">
           <ConnectButton />
-          <label className="theme-toggle">
-            <input type="checkbox" onChange={toggleTheme} checked={theme === "dark"} />
-            <span className="slider"></span>
-          </label>
         </div>
       </nav>
 
-      {/* Content */}
+     <div className="hero">
+      <h1>Sui </h1>
+     </div>
       <div className="content-wrapper">
         <div className="swap-box">
           <div className="swap-section">
@@ -106,8 +104,8 @@ function Dashboard() {
                 onChange={(e) => handleTokenChange("send", e.target.value)}
                 className="token-dropdown"
               >
-                <option value="Sui">Sui</option>
-                <option value="Walrus">Walrus</option>
+                <option value="Sui"><img src="src/assets/sui.png" />Sui</option>
+                <option value="Walrus"><img src="src/assets/walrus.png" />Walrus</option>
               </select>
             </div>
 
@@ -132,8 +130,8 @@ function Dashboard() {
                 onChange={(e) => handleTokenChange("receive", e.target.value)}
                 className="token-dropdown"
               >
-                <option value="Sui">Sui</option>
-                <option value="Walrus">Walrus</option>
+               <option value="Sui"><img src="src/assets/sui.png" />Sui</option>
+                <option value="Walrus"><img src="src/assets/walrus.png" />Walrus</option>
               </select>
             </div>
 
@@ -190,6 +188,10 @@ function Dashboard() {
 
       <footer className="footer">
         <p>Built by NEXT EPOCH LABS <img src="src/assets/X-logo.png" /></p>
+         <label className="theme-toggle">
+            <input type="checkbox" onChange={toggleTheme} checked={theme === "dark"} />
+            <span className="slider"></span>
+          </label>
       </footer>
 
       {/* 👇 Popup component */}
