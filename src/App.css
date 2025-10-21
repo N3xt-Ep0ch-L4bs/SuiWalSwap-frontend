@@ -93,8 +93,13 @@ input:checked + .slider:before {
   font-weight: bold;
 }
 
+.network-btn {
+  border: 1px solid #444;
+  background: #fff;
+}
+
 .network-btn,
-.wallet-btn,
+.connect-wallet,
 .theme-toggle-btn {
   padding: 7px 15px;
   border-radius: 8px;
@@ -104,8 +109,8 @@ input:checked + .slider:before {
 }
 
 /* Light Mode Button Styling */
-.swap-page.light .network-btn,
-.swap-page.light .wallet-btn {
+.swap-page.light
+.swap-page.light, .connect-wallet {
   background: #007aff;
   color: white;
 }
@@ -117,7 +122,7 @@ input:checked + .slider:before {
 
 /* Dark Mode Button Styling */
 .swap-page.dark .network-btn,
-.swap-page.dark .wallet-btn {
+.swap-page.dark .connect-wallet {
   background: #1e88e5;
   color: white;
 }
@@ -231,7 +236,6 @@ input:checked + .slider:before {
   width: 100%;
   max-width: 900px;
   margin: 0 auto;
-  padding-bottom: 50px;
   border: 1px solid #e5e5e5;
   border-radius: 10px;
 }

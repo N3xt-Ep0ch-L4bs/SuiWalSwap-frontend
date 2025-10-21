@@ -8,31 +8,8 @@ function Dashboard() {
   const [showModal, setShowModal] = useState(false);
   const [account, setAccount] = useState(null);
 
-  // Theme toggle
-  const toggleTheme = () => {
-    const newTheme = theme === "light" ? "dark" : "light";
-    setTheme(newTheme);
-    document.documentElement.setAttribute("data-theme", newTheme);
-  };
-
-  // Simulate wallet connect
-  const handleConnectWallet = () => {
-    setConnecting(true);
-    setTimeout(() => {
-      setConnected(true);
-      setAccount({ address: "0xA2394BcD12Ef4567890" });
-      setConnecting(false);
-      setShowModal(false);
-    }, 1000);
-  };
-
-  const handleLogout = () => {
-    setConnected(false);
-    setAccount(null);
-  };
-
-  const [sendToken] = useState("Sui");
-  const [receiveToken] = useState("Walrus");
+  const [sendToken, setSendToken] = useState("Sui");
+  const [receiveToken, setReceiveToken] = useState("Walrus");
   const [sendAmount, setSendAmount] = useState(1);
   const [receiveAmount, setReceiveAmount] = useState(2.3);
 
@@ -63,6 +40,39 @@ function Dashboard() {
     },
   ];
 
+  // Theme toggle
+  const toggleTheme = () => {
+    const newTheme = theme === "light" ? "dark" : "light";
+    setTheme(newTheme);
+    document.documentElement.setAttribute("data-theme", newTheme);
+  };
+
+  // Simulate wallet connect
+  const handleConnectWallet = () => {
+    setConnecting(true);
+    setTimeout(() => {
+      setConnected(true);
+      setAccount({ address: "0xA2394BcD12Ef4567890" });
+      setConnecting(false);
+      setShowModal(false);
+    }, 1000);
+  };
+
+  const handleLogout = () => {
+    setConnected(false);
+    setAccount(null);
+  };
+
+  // 🌀 Swap function — swaps tokens and their amounts
+  const handleSwap = () => {
+    const tempToken = sendToken;
+    const tempAmount = sendAmount;
+    setSendToken(receiveToken);
+    setReceiveToken(tempToken);
+    setSendAmount(receiveAmount);
+    setReceiveAmount(tempAmount);
+  };
+
   return (
     <div className={`swap-page ${theme}`}>
       {/* Navbar */}
@@ -71,8 +81,9 @@ function Dashboard() {
           <img src="src/assets/logo.png" alt="logo" />
           <span className="logo-text">SuiWalSwap</span>
         </div>
-        <div>
-          <button className="network-btn">Mainnet</button>
+
+        <div className="token-select">
+          <span>Mainnet</span>
         </div>
 
         <div className="nav-right">
@@ -86,7 +97,7 @@ function Dashboard() {
             </button>
           ) : (
             <div className="wallet-actions">
-              <button className="wallet-address">
+              <button className="connect-wallet">
                 {account?.address.slice(0, 6)}...{account?.address.slice(-4)}
               </button>
               <button className="logout" onClick={handleLogout}>
@@ -119,13 +130,16 @@ function Dashboard() {
                 type="number"
                 className="amount-input"
                 value={sendAmount}
-                onChange={(e) => setSendAmount(e.target.value)}
+                onChange={(e) => setSendAmount(Number(e.target.value))}
               />
               <span className="amount-sub">$3.47</span>
             </div>
           </div>
 
-          <div className="swap-divider">⇅</div>
+          {/* 👇 SWAP BUTTON (Dynamic) */}
+          <div className="swap-divider" onClick={handleSwap} title="Swap tokens">
+            ⇅
+          </div>
 
           <div className="swap-section">
             <span className="section-title">Receive</span>
@@ -137,7 +151,7 @@ function Dashboard() {
                 type="number"
                 className="amount-input"
                 value={receiveAmount}
-                onChange={(e) => setReceiveAmount(e.target.value)}
+                onChange={(e) => setReceiveAmount(Number(e.target.value))}
               />
               <span className="amount-sub">$3.37</span>
             </div>
