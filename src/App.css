@@ -298,3 +298,123 @@ input:checked + .slider:before {
   font-size: 12px;
   opacity: 0.7;
 }
+
+
+.popup-container {
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  z-index: 1000;
+  transition: all 0.3s ease;
+}
+
+/* Base styles */
+.popup-box {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 14px 16px;
+  border-radius: 14px;
+  font-size: 0.95rem;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.15);
+  animation: fadeInUp 0.4s ease;
+}
+
+.popup-box p {
+  font-weight: 600;
+  margin: 0;
+}
+
+.popup-box span {
+  font-size: 0.85rem;
+  opacity: 0.8;
+  display: block;
+  margin-top: 2px;
+}
+
+.explorer-link {
+  font-size: 0.8rem;
+  color: #3b82f6;
+  text-decoration: none;
+  margin-top: 4px;
+  display: inline-block;
+}
+
+.retry-btn {
+  margin-top: 5px;
+  padding: 4px 10px;
+  font-size: 0.8rem;
+  border: none;
+  border-radius: 8px;
+  background: #ef4444;
+  color: white;
+  cursor: pointer;
+  transition: background 0.2s ease;
+}
+
+.retry-btn:hover {
+  background: #dc2626;
+}
+
+/* Theme-based colors */
+.popup-container.light .popup-box {
+  background: white;
+  color: #111;
+}
+
+.popup-container.dark .popup-box {
+  background: #1f1f1f;
+  color: #f9f9f9;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+/* Variants */
+.loading {
+  border-left: 4px solid #3b82f6;
+}
+
+.success {
+  border-left: 4px solid #22c55e;
+}
+
+.error {
+  border-left: 4px solid #ef4444;
+}
+
+.icon {
+  flex-shrink: 0;
+}
+
+.success-icon {
+  color: #22c55e;
+}
+
+.error-icon {
+  color: #ef4444;
+}
+
+/* Spinner */
+.spin {
+  animation: spin 1s linear infinite;
+}
+
+/* Animations */
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}

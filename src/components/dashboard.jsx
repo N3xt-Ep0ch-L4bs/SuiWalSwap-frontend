@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { ConnectButton, useCurrentAccount } from "@mysten/dapp-kit";
 import "../App.css";
+import SwapPopup from "./Swaptoast"; // 👈 Import popup component
 
 function Dashboard() {
   const [theme, setTheme] = useState("light");
@@ -8,6 +9,7 @@ function Dashboard() {
   const [receiveToken, setReceiveToken] = useState("Walrus");
   const [sendAmount, setSendAmount] = useState(1);
   const [receiveAmount, setReceiveAmount] = useState(2.3);
+  const [popupStatus, setPopupStatus] = useState(null);
 
   const currentAccount = useCurrentAccount();
 
@@ -23,13 +25,33 @@ function Dashboard() {
     document.documentElement.setAttribute("data-theme", newTheme);
   };
 
-  const handleSwap = () => {
-    const tempToken = sendToken;
-    const tempAmount = sendAmount;
-    setSendToken(receiveToken);
-    setReceiveToken(tempToken);
-    setSendAmount(receiveAmount);
-    setReceiveAmount(tempAmount);
+  const handleSwap = async () => {
+    if (!currentAccount) {
+      alert("Please connect your Sui wallet first!");
+      return;
+    }
+
+    // Show loading popup
+    setPopupStatus("loading");
+
+    try {
+      // simulate network swap delay
+      await new Promise((res) => setTimeout(res, 2000));
+
+      // simulate random success or failure
+      const isSuccess = Math.random() > 0.3;
+
+      if (isSuccess) {
+        setPopupStatus("success");
+      } else {
+        setPopupStatus("error");
+      }
+
+      // remove popup after 4 seconds
+      setTimeout(() => setPopupStatus(null), 4000);
+    } catch {
+      setPopupStatus("error");
+    }
   };
 
   const handleTokenChange = (type, value) => {
@@ -40,6 +62,15 @@ function Dashboard() {
       if (value === sendToken) setSendToken(receiveToken);
       setReceiveToken(value);
     }
+  };
+
+  const handleTokenSwitch = () => {
+    const tempToken = sendToken;
+    const tempAmount = sendAmount;
+    setSendToken(receiveToken);
+    setReceiveToken(tempToken);
+    setSendAmount(receiveAmount);
+    setReceiveAmount(tempAmount);
   };
 
   return (
@@ -56,9 +87,7 @@ function Dashboard() {
         </div>
 
         <div className="nav-right">
-          {/* ✅ Official ConnectButton from Mysten */}
           <ConnectButton />
-
           <label className="theme-toggle">
             <input type="checkbox" onChange={toggleTheme} checked={theme === "dark"} />
             <span className="slider"></span>
@@ -93,7 +122,7 @@ function Dashboard() {
             </div>
           </div>
 
-          <div className="swap-divider" onClick={handleSwap} title="Swap tokens">⇅</div>
+          <div className="swap-divider" onClick={handleTokenSwitch} title="Swap tokens">⇅</div>
 
           <div className="swap-section">
             <span className="section-title">Receive</span>
@@ -122,13 +151,7 @@ function Dashboard() {
           <div className="confirm-container">
             <button
               className="confirm-btn"
-              onClick={() => {
-                if (!currentAccount) {
-                  alert("Please connect your Sui wallet first!");
-                } else {
-                  console.log("Confirming swap...");
-                }
-              }}
+              onClick={handleSwap}
             >
               {currentAccount ? "Confirm and Swap" : "Connect Wallet"}
             </button>
@@ -166,8 +189,17 @@ function Dashboard() {
       </div>
 
       <footer className="footer">
-        <p>Built by NEXT EPOCH LABS &times;</p>
+        <p>Built by NEXT EPOCH LABS <img src="src/assets/X-logo.png" /></p>
       </footer>
+
+      {/* 👇 Popup component */}
+      <SwapPopup
+        status={popupStatus}
+        onRetry={() => {
+          setPopupStatus(null);
+          handleSwap();
+        }}
+      />
     </div>
   );
 }
