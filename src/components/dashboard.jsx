@@ -88,7 +88,7 @@ function Dashboard() {
       </nav>
 
       <section className="hero">
-        <h2>Sui &#8596; Walrus Swap</h2>
+        <h2><span>Sui</span> <span>&#8596;</span> <span>Walrus</span> <span>Swap</span></h2>
         <p>Seamlessly swap your assets between Sui and Walrus</p>
       </section>
       <div className="content-wrapper">
@@ -108,8 +108,8 @@ function Dashboard() {
                 onChange={(e) => handleTokenChange("send", e.target.value)}
                 className="token-dropdown"
               >
-                <option value="Sui"><img src="src/assets/sui.png" />Sui</option>
-                <option value="Walrus"><img src="src/assets/walrus.png" />Walrus</option>
+                <option value="Sui">Sui</option>
+                <option value="Walrus">Walrus</option>
               </select>
             </div>
 
@@ -135,8 +135,8 @@ function Dashboard() {
                 onChange={(e) => handleTokenChange("receive", e.target.value)}
                 className="token-dropdown"
               >
-               <option value="Sui"><img src="src/assets/sui.png" />Sui</option>
-                <option value="Walrus"><img src="src/assets/walrus.png" />Walrus</option>
+               <option value="Sui">Sui</option>
+                <option value="Walrus">Walrus</option>
               </select>
             </div>
 
