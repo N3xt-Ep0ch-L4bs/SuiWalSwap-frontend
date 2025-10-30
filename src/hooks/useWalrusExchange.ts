@@ -8,8 +8,9 @@ import { getFullnodeUrl, SuiClient } from "@mysten/sui/client";
 import { Transaction } from "@mysten/sui/transactions";
 import { useCallback, useMemo } from "react";
 
+// Use the inner coin type for balance queries (not the Coin<T> wrapper)
 const WAL_TOKEN_TYPE =
-  "0x2::coin::Coin<0x8270feb7375eee355e64fdb69c50abb6b5f9393a722883c1cf45f8e26048810a::wal::WAL>";
+  "0x8270feb7375eee355e64fdb69c50abb6b5f9393a722883c1cf45f8e26048810a::wal::WAL";
 
 // hardcoded protocol addresses from your backend sample
 // TESTNET addresses - replace with mainnet IDs when provided
