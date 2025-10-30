@@ -1,9 +1,13 @@
 import { useState, useEffect, useRef } from "react";
 import { ConnectButton, useCurrentAccount } from "@mysten/dapp-kit";
 import { motion, useInView } from "framer-motion";
-import { ArrowUpDown, ChevronLeft, ChevronRight, ChevronDown, Github, Twitter, Linkedin, Globe } from "lucide-react";
+import { ArrowUpDown, ChevronLeft, ChevronRight, ChevronDown, Github, Linkedin, Globe } from "lucide-react";
 import "../App.css";
 import SwapPopup from "./Swaptoast"; 
+import AppLogo from "../assets/logo.png";
+import XLogo from "../assets/X-logo.png";
+import SuiLogoImg from "../assets/20947.png";
+import WalrusLogoImg from "../assets/36119.png";
 import { useWalrusExchange } from "../hooks/useWalrusExchange"; 
 import { getWalRateForNetwork, getSuiUsd, getWalUsdMainnet } from "../utils/prices";
 
@@ -261,9 +265,7 @@ function Dashboard() {
 
   const getTokenLogo = (symbol) => {
     if (!symbol) return "";
-    return symbol.toLowerCase() === "sui"
-      ? "src/assets/20947.png"
-      : "src/assets/36119.png"; // Walrus
+    return symbol.toLowerCase() === "sui" ? SuiLogoImg : WalrusLogoImg;
   };
 
   const containerVariants = {
@@ -355,13 +357,24 @@ function Dashboard() {
       >
         <div className="nav-left">
           <motion.img
-            src="src/assets/logo.png"
+            src={AppLogo}
             alt="SuiWalSwap logo"
             whileHover={{ scale: 1.1, rotate: 5 }}
             transition={{ type: "spring", stiffness: 400 }}
           />
           <span className="logo-text">SuiWalSwap</span>
         </div>
+
+        {/* Theme toggle moved before network dropdown */}
+        <label className="theme-toggle" aria-label="Toggle dark mode">
+          <input
+            type="checkbox"
+            onChange={toggleTheme}
+            checked={theme === "dark"}
+            aria-label="Theme toggle"
+          />
+          <span className="slider"></span>
+        </label>
 
         <motion.div
           ref={networkSelectorRef}
@@ -421,15 +434,6 @@ function Dashboard() {
           <div className="connect-wrapper">
             <ConnectButton />
           </div>
-          <label className="theme-toggle" aria-label="Toggle dark mode">
-            <input
-              type="checkbox"
-              onChange={toggleTheme}
-              checked={theme === "dark"}
-              aria-label="Theme toggle"
-            />
-            <span className="slider"></span>
-          </label>
         </div>
       </motion.nav>
 
@@ -711,7 +715,7 @@ function Dashboard() {
             whileTap={{ scale: 0.9 }}
             aria-label="Visit our X profile"
           >
-            <img src="src/assets/X-logo.png" alt="X logo" />
+            <img src={XLogo} alt="X logo" />
           </motion.a>
           <motion.a
             href="https://linkedin.com/company/next-epoch-labs"

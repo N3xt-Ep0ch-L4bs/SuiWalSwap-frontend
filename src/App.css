@@ -348,6 +348,12 @@ body,
   display: flex;
   align-items: center;
   gap: 12px;
+  margin-left: auto;
+}
+
+.connect-wrapper {
+  display: flex;
+  justify-content: flex-end;
 }
 
 .swap-page.light .connect-wrapper button {
@@ -1187,11 +1193,61 @@ input:checked + .slider:before {
     flex-wrap: wrap;
   }
 
+  /* Keep logo left and wallet connect on the top row */
+  .nav-left {
+    order: 1;
+    flex: 1;
+  }
+
   .nav-right {
+    order: 2;
+    width: auto;
+    justify-content: flex-end;
+    margin-top: 0;
+  }
+
+  /* Move toggle and network selector below on their own row(s) */
+  .theme-toggle {
     order: 3;
-    width: 100%;
-    justify-content: space-between;
+    flex: 0 0 auto;
+    width: auto;
     margin-top: 12px;
+    display: block;
+  }
+
+  .network-selector {
+    order: 3;
+    flex: 1 1 auto;
+    width: auto;
+    margin-top: 12px;
+    display: flex;
+    justify-content: flex-end;
+    margin-left: auto;
+  }
+
+  .network-selector .network-btn {
+    width: auto;
+  }
+
+  /* Compact theme toggle on mobile */
+  .theme-toggle {
+    width: 32px;
+    height: 28px;
+  }
+
+  .theme-toggle .slider {
+    border-radius: 24px;
+  }
+
+  .theme-toggle .slider:before {
+    width: 14px;
+    height: 14px;
+    left: 3px;
+    bottom: 7px;
+  }
+
+  .theme-toggle input:checked + .slider:before {
+    transform: translateX(12px);
   }
 
   .hero {
@@ -1208,22 +1264,28 @@ input:checked + .slider:before {
 
   .swap-section {
     padding: 20px;
-    flex-wrap: wrap;
+    padding-top: 32px; /* ensure room for absolute .section-title */
+    flex-wrap: nowrap;
     gap: 12px;
   }
 
   .amount-input {
-    width: 100%;
-    text-align: left;
+    width: auto;
+    text-align: right;
   }
 
   .amount-display {
-    align-items: flex-start;
-    width: 100%;
+    align-items: flex-end;
+    width: auto;
+    max-width: 55%;
+    padding-right: 8px;
+    margin-left: 0;
+    text-align: right;
   }
 
   .token-select {
-    width: 100%;
+    width: auto;
+    max-width: 45%;
     justify-content: space-between;
   }
 
@@ -1250,6 +1312,11 @@ input:checked + .slider:before {
   .popup-box {
     max-width: calc(100vw - 40px);
   }
+
+  /* Make the swap divider a bit tighter on tablets/phones */
+  .swap-divider {
+    padding: 12px 0;
+  }
 }
 
 @media (max-width: 480px) {
@@ -1275,6 +1342,8 @@ input:checked + .slider:before {
 
   .swap-section {
     padding: 16px;
+    padding-top: 28px; /* ensure room for absolute .section-title */
+    flex-wrap: nowrap;
   }
 
   .section-title {
@@ -1284,6 +1353,8 @@ input:checked + .slider:before {
 
   .amount-input {
     font-size: 24px;
+    width: auto;
+    text-align: right;
   }
 
   .confirm-container {
@@ -1306,6 +1377,15 @@ input:checked + .slider:before {
     font-size: 12px;
   }
 
+  .amount-display {
+    align-items: flex-end;
+    width: auto;
+    max-width: 60%;
+    text-align: right;
+    margin-left: 0;
+    padding-right: 8px;
+  }
+
   .popup-container {
     right: 0;
     left: 0;
@@ -1324,6 +1404,67 @@ input:checked + .slider:before {
   .footer {
     padding: 32px 16px;
     font-size: 13px;
+  }
+
+  /* Compact token selector and switch icon on small phones */
+  .token-select {
+    width: auto;
+    max-width: 40%;
+    display: inline-flex;
+    align-self: flex-start;
+    padding: 6px 10px;
+    border-radius: 12px;
+  }
+
+  .token-icon {
+    width: 16px;
+    height: 16px;
+    margin: 0 6px;
+  }
+
+  .token-name {
+    font-size: 13px;
+    min-width: 52px;
+  }
+
+  .token-arrow-btn {
+    padding: 2px;
+  }
+
+  .token-arrow-btn svg {
+    width: 14px;
+    height: 14px;
+  }
+
+  .swap-divider {
+    padding: 8px 0;
+  }
+
+  .swap-divider svg {
+    width: 14px;
+    height: 14px;
+  }
+}
+
+@media (max-width: 360px) {
+  .token-select {
+    padding: 4px 8px;
+  }
+
+  .token-icon {
+    width: 14px;
+    height: 14px;
+    margin: 0 4px;
+  }
+
+  .token-name {
+    font-size: 12px;
+    min-width: 48px;
+  }
+
+  .token-arrow-btn svg {
+    width: 12px;
+    height: 12px;
   }
 }
 
