@@ -1,9 +1,11 @@
 import { useState, useEffect, useRef } from "react";
 import { ConnectButton, useCurrentAccount } from "@mysten/dapp-kit";
 import { motion, useInView } from "framer-motion";
-import { ArrowUpDown } from "lucide-react";
+import { ArrowUpDown, ChevronLeft, ChevronRight, ChevronDown, Github, Twitter, Linkedin, Globe } from "lucide-react";
 import "../App.css";
 import SwapPopup from "./Swaptoast"; 
+import { useWalrusExchange } from "../hooks/useWalrusExchange"; 
+import { getWalRateForNetwork, getSuiUsd, getWalUsdMainnet } from "../utils/prices";
 
 function Dashboard() {
   const [theme, setTheme] = useState(() => {
@@ -15,14 +17,125 @@ function Dashboard() {
   const [sendAmount, setSendAmount] = useState(1);
   const [receiveAmount, setReceiveAmount] = useState(2.3);
   const [popupStatus, setPopupStatus] = useState(null);
+  const [network, setNetwork] = useState(() => {
+    const savedNetwork = localStorage.getItem("network");
+    return savedNetwork || "testnet";
+  });
+  const [isNetworkMenuOpen, setIsNetworkMenuOpen] = useState(false);
+  const [suiBalance, setSuiBalance] = useState(0);
+  const [walrusBalance, setWalrusBalance] = useState(0);
+  const [walPerSui, setWalPerSui] = useState(0.5);
+  const [suiUsd, setSuiUsd] = useState(0);
+  const [walUsd, setWalUsd] = useState(0);
 
   const currentAccount = useCurrentAccount();
+  const { convertSuiToWal, getWalBalance, getSuiBalance, connected } = useWalrusExchange();
 
   useEffect(() => {
     // Update theme when it changes
     document.documentElement.setAttribute("data-theme", theme);
     localStorage.setItem("theme", theme);
   }, [theme]);
+
+  useEffect(() => {
+    // Save network preference
+    localStorage.setItem("network", network);
+  }, [network]);
+
+  // Fetch WAL per SUI rate based on network
+  useEffect(() => {
+    let cancelled = false;
+    const loadRate = async () => {
+      try {
+        const rate = await getWalRateForNetwork(network);
+        if (!cancelled) setWalPerSui(rate || 0);
+      } catch (e) {
+        if (!cancelled) setWalPerSui(0);
+      }
+    };
+    loadRate();
+    return () => {
+      cancelled = true;
+    };
+  }, [network]);
+
+  // Fetch real prices (USD) even on testnet
+  useEffect(() => {
+    let cancelled = false;
+    const loadPrices = async () => {
+      try {
+        const [sui, wal] = await Promise.all([getSuiUsd(), getWalUsdMainnet()]);
+        if (!cancelled) {
+          setSuiUsd(Number(sui) || 0);
+          setWalUsd(Number(wal) || 0);
+        }
+      } catch (e) {
+        if (!cancelled) {
+          setSuiUsd(0);
+          setWalUsd(0);
+        }
+      }
+    };
+    loadPrices();
+    const id = setInterval(loadPrices, 60_000);
+    return () => {
+      cancelled = true;
+      clearInterval(id);
+    };
+  }, [network]);
+
+  // Fetch balances when account is connected
+  useEffect(() => {
+    const fetchBalances = async () => {
+      if (!connected || !currentAccount?.address) {
+        setSuiBalance(0);
+        setWalrusBalance(0);
+        return;
+      }
+
+      try {
+        // Fetch SUI balance (returns in MIST)
+        const suiBalanceMist = await getSuiBalance();
+        const suiBalanceFormatted = Number(suiBalanceMist) / 1e9; // Convert from MIST to SUI
+        setSuiBalance(suiBalanceFormatted || 0);
+
+        // Fetch WAL balance (returns in smallest unit)
+        // This will return 0 if user doesn't have WAL tokens
+        const walBalanceMist = await getWalBalance();
+        const walBalanceFormatted = Number(walBalanceMist) / 1e9; // Convert to WAL (assuming same decimals as SUI)
+        setWalrusBalance(walBalanceFormatted || 0);
+      } catch (error) {
+        console.error("Error fetching balances:", error);
+        setSuiBalance(0);
+        setWalrusBalance(0);
+      }
+    };
+
+    fetchBalances();
+    // Refresh balances every 10 seconds
+    const interval = setInterval(fetchBalances, 10000);
+    return () => clearInterval(interval);
+  }, [connected, currentAccount?.address, getSuiBalance, getWalBalance]);
+
+  // Auto-calc receive amount for SUI -> WAL based on current rate
+  useEffect(() => {
+    if (sendToken === "Sui" && receiveToken === "Walrus") {
+      const est = Number((Number(sendAmount || 0) * Number(walPerSui || 0)).toFixed(4));
+      setReceiveAmount(est);
+    }
+  }, [sendAmount, walPerSui, sendToken, receiveToken]);
+
+  const networks = [
+    { value: "mainnet", label: "Mainnet" },
+    { value: "testnet", label: "Testnet" },
+  ];
+
+  const handleNetworkChange = (newNetwork) => {
+    setNetwork(newNetwork);
+    setIsNetworkMenuOpen(false);
+    // Note: Actual network switching would need to be handled at the wallet/App level
+    // This updates the UI preference
+  };
 
   const data = [
     { date: "12 Oct 2025", pair: "Sui → WAL", input: "1.02 SUI", output: "2.03 WAL", hash: "0x239...12d4", status: "Success" },
@@ -49,37 +162,91 @@ function Dashboard() {
   };
 
   const handleSwap = async () => {
-    if (!currentAccount) {
+    if (!connected || !currentAccount) {
       alert("Please connect your Sui wallet first!");
+      return;
+    }
+
+    // Only support SUI -> WAL swaps for now
+    if (sendToken !== "Sui" || receiveToken !== "Walrus") {
+      alert("Currently only SUI → WAL swaps are supported.");
+      return;
+    }
+
+    // Validate amount
+    if (!sendAmount || sendAmount <= 0) {
+      alert("Please enter a valid amount to swap.");
+      return;
+    }
+
+    // Check sufficient balance
+    if (sendAmount > suiBalance) {
+      alert("Insufficient SUI balance.");
       return;
     }
 
     setPopupStatus("loading");
 
     try {
-      await new Promise((res) => setTimeout(res, 2000));
+      // Convert SUI amount to MIST (1 SUI = 1_000_000_000 MIST)
+      const amountInMist = BigInt(Math.floor(sendAmount * 1e9));
 
-      const isSuccess = Math.random() > 0.3;
+      // Execute the swap
+      const result = await convertSuiToWal(amountInMist);
 
-      if (isSuccess) {
+      // Success!
+      console.log("Swap successful! Transaction digest:", result.digest);
         setPopupStatus("success");
-      } else {
-        setPopupStatus("error");
-      }
+
+      // Refresh balances after successful swap (wait a bit for blockchain to update)
+      setTimeout(async () => {
+        try {
+          const suiBalanceMist = await getSuiBalance();
+          const walBalanceMist = await getWalBalance();
+          setSuiBalance(Number(suiBalanceMist) / 1e9);
+          setWalrusBalance(Number(walBalanceMist) / 1e9);
+        } catch (error) {
+          console.error("Error refreshing balances:", error);
+        }
+      }, 3000);
 
       setTimeout(() => setPopupStatus(null), 4000);
-    } catch {
+    } catch (error) {
+      console.error("Swap error:", error);
       setPopupStatus("error");
+      setTimeout(() => setPopupStatus(null), 4000);
     }
   };
 
-  const handleTokenChange = (type, value) => {
+  const tokens = ["Sui", "Walrus"];
+
+  const cycleToken = (type, direction) => {
     if (type === "send") {
-      if (value === receiveToken) setReceiveToken(sendToken);
-      setSendToken(value);
+      const currentIndex = tokens.indexOf(sendToken);
+      const nextIndex = direction === "next" 
+        ? (currentIndex + 1) % tokens.length
+        : (currentIndex - 1 + tokens.length) % tokens.length;
+      const nextToken = tokens[nextIndex];
+      if (nextToken === receiveToken) {
+        // If switching to the receive token, swap them
+        setReceiveToken(sendToken);
+        setSendToken(nextToken);
+      } else {
+        setSendToken(nextToken);
+      }
     } else {
-      if (value === sendToken) setSendToken(receiveToken);
-      setReceiveToken(value);
+      const currentIndex = tokens.indexOf(receiveToken);
+      const nextIndex = direction === "next"
+        ? (currentIndex + 1) % tokens.length
+        : (currentIndex - 1 + tokens.length) % tokens.length;
+      const nextToken = tokens[nextIndex];
+      if (nextToken === sendToken) {
+        // If switching to the send token, swap them
+        setSendToken(receiveToken);
+        setReceiveToken(nextToken);
+      } else {
+        setReceiveToken(nextToken);
+      }
     }
   };
 
@@ -90,6 +257,13 @@ function Dashboard() {
     setReceiveToken(tempToken);
     setSendAmount(receiveAmount);
     setReceiveAmount(tempAmount);
+  };
+
+  const getTokenLogo = (symbol) => {
+    if (!symbol) return "";
+    return symbol.toLowerCase() === "sui"
+      ? "src/assets/20947.png"
+      : "src/assets/36119.png"; // Walrus
   };
 
   const containerVariants = {
@@ -146,6 +320,21 @@ function Dashboard() {
     document.documentElement.style.setProperty("--spot-y", `50%`);
   };
 
+  // Close network menu when clicking outside
+  const networkSelectorRef = useRef(null);
+  useEffect(() => {
+    const handleClickOutside = (e) => {
+      if (
+        networkSelectorRef.current &&
+        !networkSelectorRef.current.contains(e.target)
+      ) {
+        setIsNetworkMenuOpen(false);
+      }
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
+
   return (
     <div className={`swap-page ${theme}`} onMouseMove={handleMouseMove} onMouseLeave={handleMouseLeave}>
       {/* Animated grid glow overlays */}
@@ -174,13 +363,59 @@ function Dashboard() {
           <span className="logo-text">SuiWalSwap</span>
         </div>
 
-        <motion.button
-          className="network-btn"
-          whileHover={{ scale: 1.05 }}
-          whileTap={{ scale: 0.95 }}
+        <motion.div
+          ref={networkSelectorRef}
+          className="network-selector"
+          initial={{ opacity: 0, y: -10 }}
+          animate={{ opacity: 1, y: 0 }}
         >
-          Mainnet
-        </motion.button>
+          <motion.button
+            className="network-btn"
+            onClick={() => setIsNetworkMenuOpen(!isNetworkMenuOpen)}
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
+            aria-expanded={isNetworkMenuOpen}
+            aria-haspopup="listbox"
+          >
+            {networks.find(n => n.value === network)?.label || "Testnet"}
+            <ChevronDown 
+              size={16} 
+              style={{ 
+                marginLeft: "6px",
+                transform: isNetworkMenuOpen ? "rotate(180deg)" : "rotate(0deg)",
+                transition: "transform 0.2s ease"
+              }} 
+            />
+          </motion.button>
+          {isNetworkMenuOpen && (
+            <motion.ul
+              className="network-menu"
+              role="listbox"
+              initial={{ opacity: 0, y: -10 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -10 }}
+            >
+              {networks.map((net) => (
+                <li
+                  key={net.value}
+                  role="option"
+                  aria-selected={network === net.value}
+                  className={`network-item ${network === net.value ? "selected" : ""}`}
+                  onClick={() => handleNetworkChange(net.value)}
+                  tabIndex={0}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter" || e.key === " ") {
+                      e.preventDefault();
+                      handleNetworkChange(net.value);
+                    }
+                  }}
+                >
+                  {net.label}
+                </li>
+              ))}
+            </motion.ul>
+          )}
+        </motion.div>
 
         <div className="nav-right">
           <div className="connect-wrapper">
@@ -227,15 +462,32 @@ function Dashboard() {
                 whileHover={{ scale: 1.05 }}
                 whileTap={{ scale: 0.95 }}
               >
-                <select
-                  value={sendToken}
-                  onChange={(e) => handleTokenChange("send", e.target.value)}
-                  className="token-dropdown"
-                  aria-label="Select token to send"
+                <motion.button
+                  type="button"
+                  className="token-arrow-btn"
+                  onClick={() => cycleToken("send", "prev")}
+                  aria-label="Previous token"
+                  whileHover={{ scale: 1.1 }}
+                  whileTap={{ scale: 0.9 }}
                 >
-                  <option value="Sui">Sui</option>
-                  <option value="Walrus">Walrus</option>
-                </select>
+                  <ChevronLeft size={18} />
+                </motion.button>
+                <img
+                  src={getTokenLogo(sendToken)}
+                  alt={`${sendToken} logo`}
+                  className="token-icon"
+                />
+                <span className="token-name">{sendToken}</span>
+                <motion.button
+                  type="button"
+                  className="token-arrow-btn"
+                  onClick={() => cycleToken("send", "next")}
+                  aria-label="Next token"
+                  whileHover={{ scale: 1.1 }}
+                  whileTap={{ scale: 0.9 }}
+                >
+                  <ChevronRight size={18} />
+                </motion.button>
               </motion.div>
 
               <div className="amount-display">
@@ -248,7 +500,19 @@ function Dashboard() {
                   min="0"
                   step="0.01"
                 />
-                <span className="amount-sub">≈ $3.47</span>
+                <span className="amount-sub">
+                  ≈ $
+                  {(() => {
+                    const amt = Number(sendAmount || 0);
+                    const price = sendToken === "Sui" ? suiUsd : walUsd;
+                    return (amt * (price || 0)).toFixed(2);
+                  })()}
+                </span>
+                {currentAccount && (
+                  <span className="balance-display">
+                    Balance: {sendToken === "Sui" ? suiBalance.toFixed(4) : walrusBalance.toFixed(4)} {sendToken === "Sui" ? "SUI" : "WAL"}
+                  </span>
+                )}
               </div>
             </div>
           </div>
@@ -282,15 +546,32 @@ function Dashboard() {
                 whileHover={{ scale: 1.05 }}
                 whileTap={{ scale: 0.95 }}
               >
-                <select
-                  value={receiveToken}
-                  onChange={(e) => handleTokenChange("receive", e.target.value)}
-                  className="token-dropdown"
-                  aria-label="Select token to receive"
+                <motion.button
+                  type="button"
+                  className="token-arrow-btn"
+                  onClick={() => cycleToken("receive", "prev")}
+                  aria-label="Previous token"
+                  whileHover={{ scale: 1.1 }}
+                  whileTap={{ scale: 0.9 }}
                 >
-                  <option value="Sui">Sui</option>
-                  <option value="Walrus">Walrus</option>
-                </select>
+                  <ChevronLeft size={18} />
+                </motion.button>
+                <img
+                  src={getTokenLogo(receiveToken)}
+                  alt={`${receiveToken} logo`}
+                  className="token-icon"
+                />
+                <span className="token-name">{receiveToken}</span>
+                <motion.button
+                  type="button"
+                  className="token-arrow-btn"
+                  onClick={() => cycleToken("receive", "next")}
+                  aria-label="Next token"
+                  whileHover={{ scale: 1.1 }}
+                  whileTap={{ scale: 0.9 }}
+                >
+                  <ChevronRight size={18} />
+                </motion.button>
               </motion.div>
 
               <div className="amount-display">
@@ -303,7 +584,19 @@ function Dashboard() {
                   min="0"
                   step="0.01"
                 />
-                <span className="amount-sub">≈ $3.37</span>
+                <span className="amount-sub">
+                  ≈ $
+                  {(() => {
+                    const amt = Number(receiveAmount || 0);
+                    const price = receiveToken === "Sui" ? suiUsd : walUsd;
+                    return (amt * (price || 0)).toFixed(2);
+                  })()}
+                </span>
+                {currentAccount && (
+                  <span className="balance-display">
+                    Balance: {receiveToken === "Sui" ? suiBalance.toFixed(4) : walrusBalance.toFixed(4)} {receiveToken === "Sui" ? "SUI" : "WAL"}
+                  </span>
+                )}
               </div>
             </div>
           </div>
@@ -396,19 +689,53 @@ function Dashboard() {
         animate={{ opacity: 1 }}
         transition={{ delay: 0.8 }}
       >
-        <p>
-          Built by NEXT EPOCH LABS
+        <p className="footer-text">Built by NEXT EPOCH LABS</p>
+        <div className="footer-social">
           <motion.a
-            href="https://x.com"
+            href="https://github.com/NextEpochLabs"
             target="_blank"
             rel="noopener noreferrer"
-            whileHover={{ scale: 1.1 }}
+            className="social-link"
+            whileHover={{ scale: 1.15, y: -2 }}
             whileTap={{ scale: 0.9 }}
-            aria-label="Visit our Twitter"
+            aria-label="Visit our GitHub"
           >
-            <img src="src/assets/X-logo.png" alt="Twitter" />
+            <Github size={20} />
           </motion.a>
-        </p>
+          <motion.a
+            href="https://x.com/NextEpochLabs"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="social-link"
+            whileHover={{ scale: 1.15, y: -2 }}
+            whileTap={{ scale: 0.9 }}
+            aria-label="Visit our X profile"
+          >
+            <img src="src/assets/X-logo.png" alt="X logo" />
+          </motion.a>
+          <motion.a
+            href="https://linkedin.com/company/next-epoch-labs"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="social-link"
+            whileHover={{ scale: 1.15, y: -2 }}
+            whileTap={{ scale: 0.9 }}
+            aria-label="Visit our LinkedIn"
+          >
+            <Linkedin size={20} />
+          </motion.a>
+          <motion.a
+            href="https://nextepochlabs.com"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="social-link"
+            whileHover={{ scale: 1.15, y: -2 }}
+            whileTap={{ scale: 0.9 }}
+            aria-label="Visit our website"
+          >
+            <Globe size={20} />
+          </motion.a>
+        </div>
       </motion.footer>
 
       <SwapPopup
